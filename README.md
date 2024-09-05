@@ -14,6 +14,7 @@ This is my personal portfolio website, designed to showcase my projects, experie
 
 - **Frontend**: React
 - **Styling**: Tailwind CSS
+- **Deployment**: Vercel
 
 ## Setup
 

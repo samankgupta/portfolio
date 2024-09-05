@@ -26,7 +26,7 @@ export default function ModalFolder({
       "Full Stack Web Development Intern",
     ],
     "Leadership Roles": ["IEEECSVITC", "Photography Club"],
-    "About Me": ["Introduction", "Tech skills"],
+    "About Me": ["Introduction", "Resume", "Tech skills"],
   };
 
   const [fileUrl, setFileUrl] = useState("");

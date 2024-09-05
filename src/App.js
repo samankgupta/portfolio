@@ -151,7 +151,7 @@ function App() {
                 <li>
                   <a
                     className="cursor-default px-2.5 font-bold inline-block"
-                    href="#"
+                    href={FileURLs['Resume']} target="_blank"
                   >
                     <img src={doc} className="h-3 pt-px" />
                   </a>

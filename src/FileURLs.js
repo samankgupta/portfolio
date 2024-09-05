@@ -27,7 +27,8 @@ export const FileURLs = {
     "https://drive.google.com/file/d/1AEHm1jXNeKdQBVkXtdeU2RzXx6TQRhyQ/preview",
   "Research Paper":
     "https://drive.google.com/file/d/1cBMwBs3mFkzbgIVuplHPSPrI0zcOxlmA/preview",
-  Resume: "",
+  Resume:
+    "https://drive.google.com/file/d/1tqc2OhVe6sfObhxyiEb7Tg3S7xmUkX_k/preview",
   TaskHub:
     "https://drive.google.com/file/d/1WU5dUi_mYC6TPQ8ey0oNB-0dT7nFZ4Bq/preview",
   "Tech skills":
