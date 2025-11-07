@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "resume.samankgupta.dev" 
+        }
+      ],
+      "destination": "https://drive.google.com/file/d/1tqc2OhVe6sfObhxyiEb7Tg3S7xmUkX_k/view?usp=sharing", 
+      "permanent": true 
+    }
+  ]
+}
