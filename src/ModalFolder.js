@@ -1,13 +1,15 @@
-import pdficon from "./images/pdficon.gif";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import docIcon from "./images/doc.png";
+import pdfIcon from "./images/pdficon.gif";
+import folderIcon from "./images/folder.webp";
 import ModalFile from "./ModalFile";
-import { FileURLs } from "./FileURLs";
+import { FileAssets } from "./FileURLs";
 
 export default function ModalFolder({
   isOpen,
   onClose,
-  modalPosition,
-  modalFolderName,
+  modalPosition = { top: 100, left: 100 },
+  modalFolderName = "",
 }) {
   const filesInFolders = {
     Projects: [
@@ -18,173 +20,219 @@ export default function ModalFolder({
       "KYC System",
       "AthElite",
       "TaskHub",
+      "AresAI",
+      "F1 Overtake Prediction",
+      "Youtube Sentiment Analysis",
+      "GreenHoyas",
+      "A Piece Of Advice",
+      "Front Desk",
     ],
     "Professional Experience": [
-      "Data Engineer",
+      "Software Engineer",
       "Data Science Intern 1",
       "Data Science Intern 2",
       "Full Stack Web Development Intern",
     ],
-    "Leadership Roles": ["IEEECSVITC", "Photography Club"],
-    "About Me": ["Introduction", "Resume", "Tech skills"],
+    "Leadership Roles": ["IEEE Computer Society", "Photography Club", "GW School of Business"],
+    "About Me": ["Tech skills", "Introduction", "Resume"],
   };
 
-  const [fileUrl, setFileUrl] = useState("");
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [isModalFileOpen, setIsModalFileOpen] = useState(false);
+  const [modalFilePosition, setModalFilePosition] = useState({ top: 0, left: 0 });
+  const [modalFileName, setModalFileName] = useState("");
 
-  const handleClick = (item) => {
-    setSelectedItem(item);
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!isOpen) return;
+      if (e.key === "Escape") {
+        setSelectedItem(null);
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  const handleClick = (e, name) => {
+    e.stopPropagation();
+    setSelectedItem(name);
   };
+
+  const handleDoubleClick = (event, name) => {
+    event.stopPropagation();
+    const rect = event.currentTarget.getBoundingClientRect();
+    setModalFilePosition({
+      top: rect.top,
+      left: rect.left,
+    });
+    setModalFileName(name);
+    setIsModalFileOpen(true);
+  };
+
   const closeFileModal = () => {
     setIsModalFileOpen(false);
   };
 
-  const [selectedItem, setSelectedItem] = useState(null);
+  const files = filesInFolders[modalFolderName] || [];
 
-  const [isModalFileOpen, setIsModalFileOpen] = useState(false);
-  const [modalFilePosition, setModalFilePosition] = useState({
-    top: 0,
-    left: 0,
-  });
-  const [modalFileName, setModalFileName] = useState("");
-
-  const handleDoubleClick = (event, name, url) => {
-    // Capture the position of the click
-    const rect = event.target.getBoundingClientRect();
-    setModalFilePosition({
-      top: rect.top,
-      left: window.innerWidth - rect.left,
-    });
-    setModalFileName(name);
-    setIsModalFileOpen(true);
-    setFileUrl(url);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      // Check if the clicked element is outside the component
-      if (!event.target.closest(".selectable-item")) {
-        setSelectedItem(null); // Deselect if clicked outside
-      }
-    };
-
-    const element = document.getElementById("modalid");
-
-    if (element) {
-      // Attach the event listener to the document
-      element.addEventListener("click", handleClickOutside);
-
-      // Cleanup the event listener on component unmount
-      return () => {
-        element.removeEventListener("click", handleClickOutside);
-      };
-    }
-  }, [isOpen]);
-
-  if (!isOpen) return null;
   return (
     <div
-      className="relative h-[calc(100dvh-1.5rem)] overflow-hidden"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-md p-2 sm:p-6 select-none"
       onClick={() => {
         setSelectedItem(null);
         onClose();
       }}
     >
       <div
-        id="modalid"
-        className={`mx-auto h-3/4 md:h-3/5 w-4/5 md:w-3/5`}
-        style={{
-          position: "absolute",
-          top: `${window.innerWidth > 768 ? window.innerHeight / 6 : 10}px`,
-          left: `${window.innerWidth > 768 ? 150 : 30}px`,
-          transformOrigin: `${modalPosition.left - 25}px ${
-            modalPosition.top - 25
-          }px`,
-          animation: "expand 0.3s ease-out forwards",
-        }}
+        className="relative w-full max-w-4xl h-[85vh] sm:h-[72vh] flex flex-col bg-stone-900/95 backdrop-blur-2xl rounded-xl sm:rounded-2xl border border-stone-700/80 shadow-2xl overflow-hidden animate-expand transition-all duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <div
-          className={`w-full h-full shadow-2xl subpixel-antialiased rounded-xl border border-gray-700 mx-auto bg-stone-800`}
-        >
-          <div
-            className="flex items-center rounded-t-xl bg-stone-600 border-b border-gray-700 shadow-lg text-center text-gray-100 h-10"
-            id="headerTerminal"
-          >
-            <div
-              className="flex ml-4 items-center text-center border-red-900 bg-red-500 shadow-inner rounded-full w-3 h-3"
-              id="closebtn"
-              onClick={onClose}
-            ></div>
-            {/* <div
-                  className="ml-2 border-yellow-900 bg-yellow-500 shadow-inner rounded-full w-3 h-3"
-                  id="minbtn"
-                ></div>
-                <div
-                  className="ml-2 border-green-900 bg-green-500 shadow-inner rounded-full w-3 h-3"
-                  id="maxbtn"
-                ></div> */}
-            <div className="mx-auto" id="terminaltitle">
-              <p className="text-center text-sm font-medium pr-8">
+        {/* Header Toolbar */}
+        <div className="flex flex-col bg-gradient-to-b from-stone-750 to-stone-850 border-b border-stone-700/80">
+          {/* Top Bar with controls */}
+          <div className="flex items-center justify-between px-3 sm:px-4 h-10 sm:h-11 border-b border-stone-800/60">
+            <div className="flex items-center space-x-2 w-16 sm:w-24">
+              <button
+                onClick={onClose}
+                title="Close Window (Esc)"
+                className="group flex items-center justify-center w-3.5 h-3.5 rounded-full bg-red-500 hover:bg-red-600 border border-red-600/50 transition-colors"
+              >
+                <span className="opacity-0 group-hover:opacity-100 text-[9px] font-bold text-red-950 leading-none">
+                  ×
+                </span>
+              </button>
+              <button
+                onClick={onClose}
+                title="Minimize Window"
+                className="group flex items-center justify-center w-3.5 h-3.5 rounded-full bg-yellow-500 hover:bg-yellow-600 border border-yellow-600/50 transition-colors"
+              >
+                <span className="opacity-0 group-hover:opacity-100 text-[9px] font-bold text-yellow-950 leading-none">
+                  -
+                </span>
+              </button>
+              <button
+                onClick={onClose}
+                title="Zoom Window"
+                className="group flex items-center justify-center w-3.5 h-3.5 rounded-full bg-green-500 hover:bg-green-600 border border-green-600/50 transition-colors"
+              >
+                <span className="opacity-0 group-hover:opacity-100 text-[8px] font-bold text-green-950 leading-none">
+                  +
+                </span>
+              </button>
+            </div>
+
+            <div className="flex items-center space-x-2 truncate">
+              <img src={folderIcon} alt="folder" className="w-4 h-4 object-contain filter drop-shadow flex-shrink-0" />
+              <h2 className="text-stone-100 text-xs font-bold tracking-wide truncate">
                 {modalFolderName}
-              </p>
+              </h2>
+            </div>
+
+            <div className="w-20 sm:w-28 text-right">
+              <span className="text-[10px] sm:text-[11px] text-stone-300 font-semibold bg-stone-800/90 px-2 py-0.5 rounded-full border border-stone-700">
+                {files.length} {files.length === 1 ? "item" : "items"}
+              </span>
             </div>
           </div>
-          <div className="rounded-b-xl">
-            <div className="relative h-full">
-              <div className="flex gap-8 md:gap-12 flex-wrap absolute mt-4 left-8">
-                {modalFolderName && filesInFolders ? (
-                  filesInFolders[modalFolderName].map((fileName) => (
-                    <div
-                      className="flex flex-col w-16 items-center"
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevents the event from bubbling up
-                        handleClick(fileName);
-                      }}
-                      onDoubleClick={(e) =>
-                        handleDoubleClick(e, fileName, FileURLs[fileName])
-                      }
-                    >
-                      <img
-                        src={pdficon}
-                        className={`py-1 ${
-                          selectedItem === fileName
-                            ? "bg-gray-200/15 rounded"
-                            : ""
-                        }`}
-                      />
-                      <p
-                        className={`[text-shadow:_1px_2px_4px_rgb(0_0_0_/_0.7)] cursor-default text-white mt-1 px-1 rounded font-medium text-center text-sm ${
-                          selectedItem === fileName ? "bg-blue-700" : ""
-                        }`}
-                      >
-                        {fileName}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <></>
-                )}
-              </div>
+
+          {/* Finder Path & Navigation Bar */}
+          <div className="flex items-center justify-between px-3 sm:px-4 py-1 sm:py-1.5 bg-stone-900/80 text-[10px] sm:text-[11px] text-stone-400 font-medium">
+            <div className="flex items-center space-x-1 sm:space-x-1.5 truncate">
+              <span className="text-stone-500 hidden xs:inline">Desktop</span>
+              <span className="text-stone-600 hidden xs:inline">›</span>
+              <span className="text-stone-500">Portfolio</span>
+              <span className="text-stone-600">›</span>
+              <span className="text-blue-400 font-semibold truncate">{modalFolderName}</span>
+            </div>
+            <div className="text-[10px] text-stone-400 font-mono hidden sm:flex items-center space-x-1">
+              <span>💡 Tap / Double-click file to open</span>
             </div>
           </div>
         </div>
+
+        {/* Finder File Grid Viewport (MOBILE RESPONSIVE GRID) */}
+        <div className="flex-1 overflow-y-auto p-3 sm:p-5 bg-stone-950/80">
+          <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 sm:gap-4">
+            {files.map((fileName) => {
+              const asset = FileAssets[fileName] || {};
+              const imageSrc = asset.image;
+              const isSelected = selectedItem === fileName;
+              const isDoc = Boolean(asset.docUrl);
+              const isPdfIcon = fileName === "Resume" || fileName === "Research Paper";
+
+              return (
+                <div
+                  key={fileName}
+                  onClick={(e) => handleClick(e, fileName)}
+                  onDoubleClick={(e) => handleDoubleClick(e, fileName)}
+                  className={`group flex flex-col items-center p-1.5 sm:p-2 rounded-xl cursor-pointer transition-all duration-200 transform group-hover:scale-105 ${
+                    isSelected
+                      ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
+                      : "hover:bg-stone-800/60"
+                  }`}
+                >
+                  {/* File Icon / Thumbnail Preview */}
+                  <div className="relative flex items-center justify-center w-16 sm:w-20 h-14 sm:h-16 mb-1">
+                    {isPdfIcon ? (
+                      <div className="relative group-hover:scale-105 transition-transform duration-200 flex items-center justify-center">
+                        <img
+                          src={pdfIcon}
+                          alt="PDF Document"
+                          className="w-10 h-12 sm:w-12 sm:h-14 object-contain filter drop-shadow-md"
+                        />
+                      </div>
+                    ) : imageSrc ? (
+                      <div className="relative group-hover:scale-105 transition-transform duration-200 w-full h-full flex items-center justify-center">
+                        <div className="w-full h-full p-0.5 bg-stone-800 rounded-lg border border-stone-700/50 shadow-sm flex items-center justify-center overflow-hidden bg-stone-900 group-hover:border-blue-500/50 transition-colors">
+                          <img
+                            src={imageSrc}
+                            alt={fileName}
+                            className="w-full h-full object-cover rounded-md"
+                          />
+                        </div>
+                        {/* Image file indicator badge */}
+                        <div className="absolute -bottom-1 -right-1 bg-stone-900/95 text-stone-300 text-[8px] font-bold px-1 py-0.5 rounded border border-stone-700/50 shadow-sm">
+                          {isDoc ? "PDF" : "PNG"}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="relative group-hover:scale-105 transition-transform duration-200">
+                        <img
+                          src={docIcon}
+                          alt="doc"
+                          className="w-9 h-11 sm:w-11 sm:h-13 object-contain filter drop-shadow-md"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* File Label */}
+                  <p
+                    className={`text-center text-[10px] sm:text-[11px] font-medium max-w-[85px] sm:max-w-[100px] truncate px-1 py-0.5 rounded transition-colors ${
+                      isSelected
+                        ? "bg-blue-600 text-white font-semibold shadow"
+                        : "text-stone-200 group-hover:text-white"
+                    }`}
+                    title={asset.name || fileName}
+                  >
+                    {fileName}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
-      <style jsx>{`
-        @keyframes expand {
-          from {
-            transform: scale(0);
-          }
-          to {
-            transform: scale(1);
-          }
-        }
-      `}</style>
+
+      {/* Modal File Viewer */}
       <ModalFile
         isOpen={isModalFileOpen}
         onClose={closeFileModal}
         modalPosition={modalFilePosition}
         modalFileName={modalFileName}
-        fileUrl={fileUrl}
       />
     </div>
   );
