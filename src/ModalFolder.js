@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import docIcon from "./images/doc.png";
 import pdfIcon from "./images/pdficon.gif";
 import folderIcon from "./images/folder.webp";
@@ -41,6 +41,7 @@ export default function ModalFolder({
   const [isModalFileOpen, setIsModalFileOpen] = useState(false);
   const [modalFilePosition, setModalFilePosition] = useState({ top: 0, left: 0 });
   const [modalFileName, setModalFileName] = useState("");
+  const lastTapRef = useRef({ time: 0, item: null });
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -56,13 +57,7 @@ export default function ModalFolder({
 
   if (!isOpen) return null;
 
-  const handleClick = (e, name) => {
-    e.stopPropagation();
-    setSelectedItem(name);
-  };
-
-  const handleDoubleClick = (event, name) => {
-    event.stopPropagation();
+  const openFileModal = (event, name) => {
     const rect = event.currentTarget.getBoundingClientRect();
     setModalFilePosition({
       top: rect.top,
@@ -70,6 +65,28 @@ export default function ModalFolder({
     });
     setModalFileName(name);
     setIsModalFileOpen(true);
+  };
+
+  const handleItemClick = (e, name) => {
+    e.stopPropagation();
+    const now = Date.now();
+    const isTouchOrMobile =
+      typeof window !== "undefined" &&
+      ("ontouchstart" in window ||
+        window.matchMedia("(max-width: 640px)").matches ||
+        (navigator.maxTouchPoints && navigator.maxTouchPoints > 0));
+
+    if (
+      isTouchOrMobile &&
+      (selectedItem === name || (lastTapRef.current.item === name && now - lastTapRef.current.time < 400))
+    ) {
+      openFileModal(e, name);
+      lastTapRef.current = { time: 0, item: null };
+      return;
+    }
+
+    lastTapRef.current = { time: now, item: name };
+    setSelectedItem(name);
   };
 
   const closeFileModal = () => {
@@ -166,8 +183,11 @@ export default function ModalFolder({
               return (
                 <div
                   key={fileName}
-                  onClick={(e) => handleClick(e, fileName)}
-                  onDoubleClick={(e) => handleDoubleClick(e, fileName)}
+                  onClick={(e) => handleItemClick(e, fileName)}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    openFileModal(e, fileName);
+                  }}
                   className={`group flex flex-col items-center p-1.5 sm:p-2 rounded-xl cursor-pointer transition-all duration-200 transform group-hover:scale-105 ${
                     isSelected
                       ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
@@ -175,13 +195,13 @@ export default function ModalFolder({
                   }`}
                 >
                   {/* File Icon / Thumbnail Preview */}
-                  <div className="relative flex items-center justify-center w-16 sm:w-20 h-14 sm:h-16 mb-1">
+                  <div className="relative flex items-center justify-center w-20 sm:w-24 h-16 sm:h-20 mb-1">
                     {isPdfIcon ? (
                       <div className="relative group-hover:scale-105 transition-transform duration-200 flex items-center justify-center">
                         <img
                           src={pdfIcon}
                           alt="PDF Document"
-                          className="w-10 h-12 sm:w-12 sm:h-14 object-contain filter drop-shadow-md"
+                          className="w-12 h-15 sm:w-14 sm:h-[60px] object-contain filter drop-shadow-md"
                         />
                       </div>
                     ) : imageSrc ? (
@@ -194,7 +214,7 @@ export default function ModalFolder({
                           />
                         </div>
                         {/* Image file indicator badge */}
-                        <div className="absolute -bottom-1 -right-1 bg-stone-900/95 text-stone-300 text-[8px] font-bold px-1 py-0.5 rounded border border-stone-700/50 shadow-sm">
+                        <div className="absolute -bottom-1 -right-1 bg-stone-900/95 text-stone-300 text-[9px] font-bold px-1 py-0.5 rounded border border-stone-700/50 shadow-sm">
                           {isDoc ? "PDF" : "PNG"}
                         </div>
                       </div>
@@ -203,7 +223,7 @@ export default function ModalFolder({
                         <img
                           src={docIcon}
                           alt="doc"
-                          className="w-9 h-11 sm:w-11 sm:h-13 object-contain filter drop-shadow-md"
+                          className="w-11 h-14 sm:w-14 sm:h-[60px] object-contain filter drop-shadow-md"
                         />
                       </div>
                     )}
@@ -211,9 +231,9 @@ export default function ModalFolder({
 
                   {/* File Label */}
                   <p
-                    className={`text-center text-[10px] sm:text-[11px] font-medium max-w-[85px] sm:max-w-[100px] truncate px-1 py-0.5 rounded transition-colors ${
+                    className={`text-center text-[11px] sm:text-xs font-semibold max-w-[100px] sm:max-w-[115px] truncate px-1 py-0.5 rounded transition-colors ${
                       isSelected
-                        ? "bg-blue-600 text-white font-semibold shadow"
+                        ? "bg-blue-600 text-white shadow"
                         : "text-stone-200 group-hover:text-white"
                     }`}
                     title={asset.name || fileName}

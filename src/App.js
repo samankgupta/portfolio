@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import linkedin from "./images/linkedin.png";
 import mail from "./images/mail.png";
 import SG from "./images/SG-removebg.png";
@@ -85,14 +85,10 @@ function App() {
 
   const versionNumber = `${currentDateTime.getMonth() + 1}.${currentDateTime.getDate()}`;
 
-  const handleClick = (item) => {
-    setSelectedItem(item);
-  };
+  const lastTapRef = useRef({ time: 0, item: null });
 
-  const handleDoubleClick = (event, name, type) => {
-    event.stopPropagation();
+  const openItem = (event, name, type) => {
     const rect = event.currentTarget.getBoundingClientRect();
-
     if (type === "file") {
       setModalFilePosition({ top: rect.top, left: rect.left });
       setModalFileName(name);
@@ -104,6 +100,30 @@ function App() {
       setIsModalFolderOpen(true);
       setActiveApp("Finder");
     }
+  };
+
+  const handleDoubleClick = openItem;
+
+  const handleItemClick = (e, name, type) => {
+    e.stopPropagation();
+    const now = Date.now();
+    const isTouchOrMobile =
+      typeof window !== "undefined" &&
+      ("ontouchstart" in window ||
+        window.matchMedia("(max-width: 640px)").matches ||
+        (navigator.maxTouchPoints && navigator.maxTouchPoints > 0));
+
+    if (
+      isTouchOrMobile &&
+      (selectedItem === name || (lastTapRef.current.item === name && now - lastTapRef.current.time < 400))
+    ) {
+      openItem(e, name, type);
+      lastTapRef.current = { time: 0, item: null };
+      return;
+    }
+
+    lastTapRef.current = { time: now, item: name };
+    setSelectedItem(name);
   };
 
   const openFolderFromDock = (folderName) => {
@@ -136,7 +156,7 @@ function App() {
   };
 
   return (
-    <div className="h-screen w-screen bg-bgimage bg-center bg-cover overflow-hidden select-none relative font-sans">
+    <div className="fixed inset-0 h-full w-full h-[100dvh] w-[100dvw] bg-bgimage bg-center bg-cover overflow-hidden select-none font-sans touch-none">
       {/* Toast Notification Banner */}
       {toastMessage && (
         <div className="fixed top-9 sm:top-10 left-1/2 -translate-x-1/2 z-50 max-w-[90vw] bg-stone-900/95 text-stone-100 border border-stone-700 shadow-2xl px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold backdrop-blur-2xl animate-bounce flex items-center justify-between space-x-2">
@@ -151,7 +171,7 @@ function App() {
       )}
 
       {/* Top Menu Bar */}
-      <div className="h-7 w-full bg-stone-900/80 backdrop-blur-2xl border-b border-white/10 flex items-center justify-between px-2 sm:px-3 text-xs text-stone-200 z-30 relative shadow-md">
+      <header className="h-7 w-full bg-stone-900/80 backdrop-blur-2xl border-b border-white/10 flex items-center justify-between px-2 sm:px-3 text-xs text-stone-200 z-30 relative shadow-md">
         {/* Left Side Menu */}
         <div className="flex items-center space-x-2 sm:space-x-4">
           {/* Portfolio Brand */}
@@ -161,7 +181,7 @@ function App() {
               className="flex items-center space-x-1.5 sm:space-x-2 cursor-pointer hover:text-white transition-colors p-0.5 rounded hover:bg-white/10"
             >
               <img src={SG} alt="SG Logo" className="h-3.5 w-auto" />
-              <span className="font-bold text-white tracking-wide truncate max-w-[90px] xs:max-w-[120px] sm:max-w-none">
+              <span className="font-bold text-white tracking-wide">
                 Samank Gupta
               </span>
             </button>
@@ -206,7 +226,7 @@ function App() {
           </div>
 
           {/* Menu Items */}
-          <div className="flex items-center space-x-1.5 sm:space-x-3 text-stone-300 font-medium">
+          <div className="hidden sm:flex items-center space-x-1.5 sm:space-x-3 text-stone-300 font-medium">
             <span className="hidden xs:inline font-semibold text-white bg-white/10 px-1.5 sm:px-2 py-0.5 rounded text-[11px] sm:text-xs">
               {activeApp}
             </span>
@@ -502,22 +522,61 @@ function App() {
             </a>
           </div>
 
-          {/* Battery Status Indicator */}
-          <div
-            className="flex items-center space-x-1 text-[11px] sm:text-xs text-stone-200 font-medium px-1 sm:px-1.5 py-0.5 rounded hover:bg-white/10 cursor-pointer"
-            title={`Battery Level: ${batteryLevel}${isCharging ? " (Charging)" : ""}`}
-            onClick={() => showToast(`🔋 Battery Status: ${batteryLevel}${isCharging ? " • Charging ⚡" : ""}`)}
-          >
-            <span className="text-[10px] sm:text-[11px] font-mono">{batteryLevel}</span>
-            <div className="relative flex items-center">
-              <div className="w-4 sm:w-5 h-2.5 rounded-[2px] border border-stone-300 p-0.5 flex items-center">
-                <div
-                  className="h-full bg-stone-100 rounded-[1px] transition-all"
-                  style={{ width: batteryLevel }}
-                />
+          {/* Battery Status Indicator & Dropdown */}
+          <div className="relative menu-bar-item hidden sm:block">
+            <button
+              onClick={(e) => toggleMenu(e, "battery")}
+              className="flex items-center space-x-1 text-[11px] sm:text-xs text-stone-200 font-medium px-1 sm:px-1.5 py-0.5 rounded hover:bg-white/10 cursor-pointer"
+              title={`Battery Level: ${batteryLevel}${isCharging ? " (Charging)" : ""}`}
+            >
+              <span className="text-[10px] sm:text-[11px] font-mono">{batteryLevel}</span>
+              <div className="relative flex items-center">
+                <div className="w-4 sm:w-5 h-2.5 rounded-[2px] border border-stone-300 p-0.5 flex items-center">
+                  <div
+                    className="h-full bg-stone-100 rounded-[1px] transition-all"
+                    style={{ width: batteryLevel }}
+                  />
+                </div>
+                <div className="w-0.5 h-1 bg-stone-300 rounded-r-[1px]" />
               </div>
-              <div className="w-0.5 h-1 bg-stone-300 rounded-r-[1px]" />
-            </div>
+            </button>
+
+            {activeMenu === "battery" && (
+              <div className="absolute top-7 right-0 w-56 bg-stone-900/95 backdrop-blur-2xl border border-stone-700/80 rounded-xl shadow-2xl py-2 px-3 z-50 text-xs text-stone-200 menu-bar-dropdown">
+                <div className="flex items-center justify-between font-semibold pb-1.5 border-b border-stone-800">
+                  <span className="text-stone-300">Battery</span>
+                  <span className="text-stone-100 font-mono">{batteryLevel}</span>
+                </div>
+                
+                <div className="py-2 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-stone-400">Power Source:</span>
+                    <span className="font-semibold text-white">
+                      {isCharging ? "Power Adapter" : "Battery"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-stone-400">Status:</span>
+                    <span className="text-stone-200">
+                      {isCharging ? "Charging ⚡" : "Using Battery"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="border-t border-stone-800 pt-1.5 mt-0.5">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveMenu(null);
+                      showToast(`⚙️ Battery Health: Normal (${batteryLevel})`);
+                    }}
+                    className="w-full text-left px-2 py-1 rounded hover:bg-blue-600 hover:text-white text-stone-300 transition-colors text-[11px]"
+                  >
+                    Battery Settings...
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="text-stone-200 font-medium text-[11px] sm:text-xs tracking-tight pl-1.5 sm:pl-2 border-l border-white/10">
@@ -525,115 +584,63 @@ function App() {
             <span className="inline sm:hidden">{mobileTimeFormat}</span>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Desktop Items Column Container (FULLY MOBILE RESPONSIVE) */}
+      {/* Main Desktop Container & Crawling Heading */}
+      <main className="contents">
+        <h1 className="sr-only">Samank Gupta - Software Engineer & Data Scientist Portfolio OS</h1>
+
+      {/* Desktop Items Column Container (ALIGNED & SPACED EVENLY) */}
       <div
-        className="absolute top-9 sm:top-10 right-3 sm:right-10 bottom-16 sm:bottom-20 max-h-[calc(100vh-100px)] overflow-y-auto flex flex-col-reverse items-end gap-3 sm:gap-6 z-10 pr-0.5 select-none"
+        className="absolute top-10 sm:top-12 right-3 sm:right-10 flex flex-col items-center gap-3.5 sm:gap-6 z-10 select-none"
         onClick={() => setSelectedItem(null)}
       >
-        {/* About Me Folder */}
+        {/* Projects Folder */}
         <div
-          className="selectable-item flex flex-col items-center w-16 sm:w-20 cursor-pointer group"
-          onClick={(e) => {
+          className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group"
+          onClick={(e) => handleItemClick(e, "Projects", "folder")}
+          onDoubleClick={(e) => {
             e.stopPropagation();
-            handleClick("About Me");
+            openItem(e, "Projects", "folder");
           }}
-          onDoubleClick={(e) => handleDoubleClick(e, "About Me", "folder")}
         >
           <div
-            className={`p-1 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "About Me"
+            className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "Projects"
                 ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
                 : "group-hover:bg-white/10"
               }`}
           >
-            <img src={folder} alt="About Me" className="w-12 h-12 sm:w-18 sm:h-18 object-contain filter drop-shadow-xl" />
+            <img src={folder} alt="Projects" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
           </div>
           <p
-            className={`text-[11px] sm:text-xs font-semibold text-center mt-0.5 sm:mt-1 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "About Me"
+            className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "Projects"
                 ? "bg-blue-600 text-white shadow"
                 : "text-white group-hover:bg-black/40"
               }`}
           >
-            About Me
-          </p>
-        </div>
-
-        {/* Research Paper File */}
-        <div
-          className="selectable-item flex flex-col items-center w-16 sm:w-20 cursor-pointer group"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleClick("researchPaper");
-          }}
-          onDoubleClick={(e) =>
-            handleDoubleClick(e, "Research Paper", "file")
-          }
-        >
-          <div
-            className={`p-1 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "researchPaper"
-                ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
-                : "group-hover:bg-white/10"
-              }`}
-          >
-            <img src={pdficon} alt="Research Paper" className="w-12 h-12 sm:w-18 sm:h-18 object-contain filter drop-shadow-xl" />
-          </div>
-          <p
-            className={`text-[11px] sm:text-xs font-semibold text-center mt-0.5 sm:mt-1 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "researchPaper"
-                ? "bg-blue-600 text-white shadow"
-                : "text-white group-hover:bg-black/40"
-              }`}
-          >
-            Research Paper
-          </p>
-        </div>
-
-        {/* Leadership Roles Folder */}
-        <div
-          className="selectable-item flex flex-col items-center w-16 sm:w-20 cursor-pointer group"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleClick("Leadership Roles");
-          }}
-          onDoubleClick={(e) => handleDoubleClick(e, "Leadership Roles", "folder")}
-        >
-          <div
-            className={`p-1 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "Leadership Roles"
-                ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
-                : "group-hover:bg-white/10"
-              }`}
-          >
-            <img src={folder} alt="Leadership Roles" className="w-12 h-12 sm:w-18 sm:h-18 object-contain filter drop-shadow-xl" />
-          </div>
-          <p
-            className={`text-[11px] sm:text-xs font-semibold text-center mt-0.5 sm:mt-1 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "Leadership Roles"
-                ? "bg-blue-600 text-white shadow"
-                : "text-white group-hover:bg-black/40"
-              }`}
-          >
-            Leadership
+            Projects
           </p>
         </div>
 
         {/* Professional Experience Folder */}
         <div
-          className="selectable-item flex flex-col items-center w-16 sm:w-20 cursor-pointer group"
-          onClick={(e) => {
+          className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group"
+          onClick={(e) => handleItemClick(e, "Professional Experience", "folder")}
+          onDoubleClick={(e) => {
             e.stopPropagation();
-            handleClick("Professional Experience");
+            openItem(e, "Professional Experience", "folder");
           }}
-          onDoubleClick={(e) => handleDoubleClick(e, "Professional Experience", "folder")}
         >
           <div
-            className={`p-1 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "Professional Experience"
+            className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "Professional Experience"
                 ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
                 : "group-hover:bg-white/10"
               }`}
           >
-            <img src={folder} alt="Professional Experience" className="w-12 h-12 sm:w-18 sm:h-18 object-contain filter drop-shadow-xl" />
+            <img src={folder} alt="Professional Experience" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
           </div>
           <p
-            className={`text-[11px] sm:text-xs font-semibold text-center mt-0.5 sm:mt-1 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "Professional Experience"
+            className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "Professional Experience"
                 ? "bg-blue-600 text-white shadow"
                 : "text-white group-hover:bg-black/40"
               }`}
@@ -642,36 +649,90 @@ function App() {
           </p>
         </div>
 
-        {/* Projects Folder */}
+        {/* Leadership Roles Folder */}
         <div
-          className="selectable-item flex flex-col items-center w-16 sm:w-20 cursor-pointer group"
-          onClick={(e) => {
+          className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group"
+          onClick={(e) => handleItemClick(e, "Leadership Roles", "folder")}
+          onDoubleClick={(e) => {
             e.stopPropagation();
-            handleClick("Projects");
+            openItem(e, "Leadership Roles", "folder");
           }}
-          onDoubleClick={(e) => handleDoubleClick(e, "Projects", "folder")}
         >
           <div
-            className={`p-1 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "Projects"
+            className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "Leadership Roles"
                 ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
                 : "group-hover:bg-white/10"
               }`}
           >
-            <img src={folder} alt="Projects" className="w-12 h-12 sm:w-18 sm:h-18 object-contain filter drop-shadow-xl" />
+            <img src={folder} alt="Leadership Roles" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
           </div>
           <p
-            className={`text-[11px] sm:text-xs font-semibold text-center mt-0.5 sm:mt-1 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "Projects"
+            className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "Leadership Roles"
                 ? "bg-blue-600 text-white shadow"
                 : "text-white group-hover:bg-black/40"
               }`}
           >
-            Projects
+            Leadership
+          </p>
+        </div>
+
+        {/* Research Paper File */}
+        <div
+          className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group"
+          onClick={(e) => handleItemClick(e, "researchPaper", "file")}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            openItem(e, "Research Paper", "file");
+          }}
+        >
+          <div
+            className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "researchPaper"
+                ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
+                : "group-hover:bg-white/10"
+              }`}
+          >
+            <img src={pdficon} alt="Research Paper" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
+          </div>
+          <p
+            className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md leading-tight max-w-[76px] sm:max-w-[100px] transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "researchPaper"
+                ? "bg-blue-600 text-white shadow"
+                : "text-white group-hover:bg-black/40"
+              }`}
+          >
+            Research<br className="sm:hidden" /> Paper
+          </p>
+        </div>
+
+        {/* About Me Folder */}
+        <div
+          className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group"
+          onClick={(e) => handleItemClick(e, "About Me", "folder")}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            openItem(e, "About Me", "folder");
+          }}
+        >
+          <div
+            className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "About Me"
+                ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
+                : "group-hover:bg-white/10"
+              }`}
+          >
+            <img src={folder} alt="About Me" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
+          </div>
+          <p
+            className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "About Me"
+                ? "bg-blue-600 text-white shadow"
+                : "text-white group-hover:bg-black/40"
+              }`}
+          >
+            About Me
           </p>
         </div>
       </div>
 
       {/* Bottom Dock */}
-      <div className="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 z-20">
+      <div className="hidden sm:block absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 z-20">
         <div className="flex items-center space-x-1 sm:space-x-3 px-2 py-1.5 sm:px-3 sm:py-2 bg-stone-900/75 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl transition-all">
           <button
             onClick={() => openFolderFromDock("Projects")}
@@ -779,6 +840,7 @@ function App() {
         modalPosition={modalFolderPosition}
         modalFolderName={modalFolderName}
       />
+      </main>
     </div>
   );
 }
