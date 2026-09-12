@@ -392,7 +392,7 @@ export const FileAssets = {
 
   // Desktop
   "Research Paper": {
-    name: "Advanced Machine Learning & Data Analytics Research Paper",
+    name: "Sentiment Analysis of Youtube Comment Section in Indian News Channels",
     image: researchPaperImg,
     category: "Desktop",
     role: "Academic Research Publication",

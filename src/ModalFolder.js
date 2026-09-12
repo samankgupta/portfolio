@@ -148,7 +148,7 @@ export default function ModalFolder({
               </h2>
             </div>
 
-            <div className="w-20 sm:w-28 text-right">
+            <div className="w-24 sm:w-36 text-right flex items-center justify-end space-x-2">
               <span className="text-[10px] sm:text-[11px] text-stone-300 font-semibold bg-stone-800/90 px-2 py-0.5 rounded-full border border-stone-700">
                 {files.length} {files.length === 1 ? "item" : "items"}
               </span>
@@ -165,12 +165,12 @@ export default function ModalFolder({
               <span className="text-blue-400 font-semibold truncate">{modalFolderName}</span>
             </div>
             <div className="text-[10px] text-stone-400 font-mono hidden sm:flex items-center space-x-1">
-              <span>💡 Tap / Double-click file to open</span>
+              <span>💡 Tap / Press Enter to open item</span>
             </div>
           </div>
         </div>
 
-        {/* Finder File Grid Viewport (MOBILE RESPONSIVE GRID) */}
+        {/* Finder File Grid Viewport */}
         <div className="flex-1 overflow-y-auto p-3 sm:p-5 bg-stone-950/80">
           <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 sm:gap-4">
             {files.map((fileName) => {
@@ -183,12 +183,21 @@ export default function ModalFolder({
               return (
                 <div
                   key={fileName}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Open ${asset.name || fileName}`}
                   onClick={(e) => handleItemClick(e, fileName)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      openFileModal(e, fileName);
+                    }
+                  }}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
                     openFileModal(e, fileName);
                   }}
-                  className={`group flex flex-col items-center p-1.5 sm:p-2 rounded-xl cursor-pointer transition-all duration-200 transform group-hover:scale-105 ${
+                  className={`group flex flex-col items-center p-1.5 sm:p-2 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
                     isSelected
                       ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
                       : "hover:bg-stone-800/60"
@@ -213,7 +222,6 @@ export default function ModalFolder({
                             className="w-full h-full object-cover rounded-md"
                           />
                         </div>
-                        {/* Image file indicator badge */}
                         <div className="absolute -bottom-1 -right-1 bg-stone-900/95 text-stone-300 text-[9px] font-bold px-1 py-0.5 rounded border border-stone-700/50 shadow-sm">
                           {isDoc ? "PDF" : "PNG"}
                         </div>
@@ -245,6 +253,45 @@ export default function ModalFolder({
             })}
           </div>
         </div>
+
+        {/* Bottom Details Preview Panel */}
+        {selectedItem && FileAssets[selectedItem] && (
+          <div className="p-3 bg-stone-900 border-t border-stone-800 text-xs text-stone-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 animate-fade-in">
+            <div className="flex-1 space-y-1">
+              <div className="flex items-center space-x-2">
+                <span className="font-bold text-white text-xs sm:text-sm">
+                  {FileAssets[selectedItem].name || selectedItem}
+                </span>
+                {FileAssets[selectedItem].role && (
+                  <span className="text-[10px] bg-blue-900/60 text-blue-300 px-1.5 py-0.5 rounded border border-blue-700/50">
+                    {FileAssets[selectedItem].role}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-stone-300 leading-snug">
+                {FileAssets[selectedItem].description}
+              </p>
+              {FileAssets[selectedItem].techStack && (
+                <div className="flex flex-wrap gap-1 pt-1">
+                  {FileAssets[selectedItem].techStack.map((tech, i) => (
+                    <span
+                      key={i}
+                      className="text-[9px] bg-stone-800 text-stone-300 px-1.5 py-0.5 rounded border border-stone-700"
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={(e) => openFileModal(e, selectedItem)}
+              className="self-end sm:self-center px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow transition-colors flex-shrink-0"
+            >
+              Open File ↗
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Modal File Viewer */}

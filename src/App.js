@@ -6,14 +6,24 @@ import doc from "./images/doc.png";
 import github from "./images/github.png";
 import pdficon from "./images/pdficon.gif";
 import folder from "./images/folder.webp";
+import terminalIcon from "./images/terminal.png";
+import trashIcon from "./images/trash.png";
 import ModalFile from "./ModalFile";
 import ModalFolder from "./ModalFolder";
+import ModalTerminal from "./ModalTerminal";
+import ModalSnakeGame from "./ModalSnakeGame";
+import ModalTrash from "./ModalTrash";
+import { MacSnakeGameIcon } from "./MacIcons";
+import { FileAssets } from "./FileURLs";
 
 function App() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalFileOpen, setIsModalFileOpen] = useState(false);
   const [isModalFolderOpen, setIsModalFolderOpen] = useState(false);
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+  const [isSnakeGameOpen, setIsSnakeGameOpen] = useState(false);
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
   const [modalFilePosition, setModalFilePosition] = useState({ top: 0, left: 0 });
   const [modalFileName, setModalFileName] = useState("");
   const [modalFolderPosition, setModalFolderPosition] = useState({ top: 0, left: 0 });
@@ -547,7 +557,7 @@ function App() {
                   <span className="text-stone-300">Battery</span>
                   <span className="text-stone-100 font-mono">{batteryLevel}</span>
                 </div>
-                
+
                 <div className="py-2 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-stone-400">Power Source:</span>
@@ -580,266 +590,419 @@ function App() {
           </div>
 
           <div className="text-stone-200 font-medium text-[11px] sm:text-xs tracking-tight pl-1.5 sm:pl-2 border-l border-white/10">
-            <span className="hidden sm:inline">{formattedDateTime}</span>
-            <span className="inline sm:hidden">{mobileTimeFormat}</span>
+            <span className="inline">{formattedDateTime}</span>
+            {/* <span className="inline sm:hidden">{mobileTimeFormat}</span> */}
           </div>
         </div>
       </header>
 
-      {/* Main Desktop Container & Crawling Heading */}
+      {/* Main Desktop Container & Accessible DOM Content Layer */}
       <main className="contents">
-        <h1 className="sr-only">Samank Gupta - Software Engineer & Data Scientist Portfolio OS</h1>
+        <h1 className="sr-only">Samank Gupta - Software Engineer Portfolio OS</h1>
 
-      {/* Desktop Items Column Container (ALIGNED & SPACED EVENLY) */}
-      <div
-        className="absolute top-10 sm:top-12 right-3 sm:right-10 flex flex-col items-center gap-3.5 sm:gap-6 z-10 select-none"
-        onClick={() => setSelectedItem(null)}
-      >
-        {/* Projects Folder */}
+        {/* Accessible & SEO-Crawlable DOM Text Layer for Screen Readers & Search Engines */}
+        <section aria-label="Portfolio Content Index" className="sr-only">
+          <h2>About Samank Gupta</h2>
+          <p>
+            Samank is a Computer Science professional with experience in software engineering, data engineering, and AI/ML. I previously worked as a Data Engineer at Becton Dickinson (BD), where I built data pipelines, automation tools, and AI-driven solutions. I also completed my Master’s in Computer Science at George Washington University, working on projects across generative AI, full-stack development, and intelligent systems.
+          </p>
+          <p>
+            Samank is a fast learner with a strong curiosity for new technologies and enjoy figuring out how things work by building them myself. I’m also a team player who enjoys collaborating, sharing ideas, and learning from others. My interests include applied AI, scalable software, and building products that solve real-world problems. Outside of tech, I’m passionate about filmmaking and sports.
+          </p>
+
+          <h2>Featured Projects</h2>
+          <ul>
+            {Object.keys(FileAssets)
+              .filter((key) => FileAssets[key].category === "Projects")
+              .map((key) => {
+                const proj = FileAssets[key];
+                return (
+                  <li key={key}>
+                    <h3>{proj.name || key}</h3>
+                    <p>{proj.description}</p>
+                    {proj.techStack && (
+                      <p>Tech Stack: {proj.techStack.join(", ")}</p>
+                    )}
+                  </li>
+                );
+              })}
+          </ul>
+
+          <h2>Work Experience & Leadership</h2>
+          <p>
+            Software Engineer at Becton Dickinson (BD), Data Science Intern at BD, Lead Developer for GreenHoyas and GWSB AI Front Desk Assistant, President of IEEE Computer Society VIT Chennai.
+          </p>
+        </section>
+
+        {/* Desktop Items Column Container */}
         <div
-          className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group"
-          onClick={(e) => handleItemClick(e, "Projects", "folder")}
-          onDoubleClick={(e) => {
-            e.stopPropagation();
-            openItem(e, "Projects", "folder");
-          }}
+          className="absolute top-10 sm:top-12 right-3 sm:right-10 flex flex-col items-center gap-3.5 sm:gap-6 z-10 select-none"
+          onClick={() => setSelectedItem(null)}
         >
+          {/* Projects Folder */}
           <div
-            className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "Projects"
+            tabIndex={0}
+            role="button"
+            aria-label="Open Projects Folder"
+            className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl"
+            onClick={(e) => handleItemClick(e, "Projects", "folder")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openItem(e, "Projects", "folder");
+              }
+            }}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              openItem(e, "Projects", "folder");
+            }}
+          >
+            <div
+              className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "Projects"
                 ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
                 : "group-hover:bg-white/10"
-              }`}
-          >
-            <img src={folder} alt="Projects" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
-          </div>
-          <p
-            className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "Projects"
+                }`}
+            >
+              <img src={folder} alt="Projects" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
+            </div>
+            <p
+              className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "Projects"
                 ? "bg-blue-600 text-white shadow"
                 : "text-white group-hover:bg-black/40"
-              }`}
-          >
-            Projects
-          </p>
-        </div>
-
-        {/* Professional Experience Folder */}
-        <div
-          className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group"
-          onClick={(e) => handleItemClick(e, "Professional Experience", "folder")}
-          onDoubleClick={(e) => {
-            e.stopPropagation();
-            openItem(e, "Professional Experience", "folder");
-          }}
-        >
-          <div
-            className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "Professional Experience"
-                ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
-                : "group-hover:bg-white/10"
-              }`}
-          >
-            <img src={folder} alt="Professional Experience" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
-          </div>
-          <p
-            className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "Professional Experience"
-                ? "bg-blue-600 text-white shadow"
-                : "text-white group-hover:bg-black/40"
-              }`}
-          >
-            Experience
-          </p>
-        </div>
-
-        {/* Leadership Roles Folder */}
-        <div
-          className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group"
-          onClick={(e) => handleItemClick(e, "Leadership Roles", "folder")}
-          onDoubleClick={(e) => {
-            e.stopPropagation();
-            openItem(e, "Leadership Roles", "folder");
-          }}
-        >
-          <div
-            className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "Leadership Roles"
-                ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
-                : "group-hover:bg-white/10"
-              }`}
-          >
-            <img src={folder} alt="Leadership Roles" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
-          </div>
-          <p
-            className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "Leadership Roles"
-                ? "bg-blue-600 text-white shadow"
-                : "text-white group-hover:bg-black/40"
-              }`}
-          >
-            Leadership
-          </p>
-        </div>
-
-        {/* Research Paper File */}
-        <div
-          className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group"
-          onClick={(e) => handleItemClick(e, "researchPaper", "file")}
-          onDoubleClick={(e) => {
-            e.stopPropagation();
-            openItem(e, "Research Paper", "file");
-          }}
-        >
-          <div
-            className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "researchPaper"
-                ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
-                : "group-hover:bg-white/10"
-              }`}
-          >
-            <img src={pdficon} alt="Research Paper" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
-          </div>
-          <p
-            className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md leading-tight max-w-[76px] sm:max-w-[100px] transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "researchPaper"
-                ? "bg-blue-600 text-white shadow"
-                : "text-white group-hover:bg-black/40"
-              }`}
-          >
-            Research<br className="sm:hidden" /> Paper
-          </p>
-        </div>
-
-        {/* About Me Folder */}
-        <div
-          className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group"
-          onClick={(e) => handleItemClick(e, "About Me", "folder")}
-          onDoubleClick={(e) => {
-            e.stopPropagation();
-            openItem(e, "About Me", "folder");
-          }}
-        >
-          <div
-            className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "About Me"
-                ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
-                : "group-hover:bg-white/10"
-              }`}
-          >
-            <img src={folder} alt="About Me" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
-          </div>
-          <p
-            className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "About Me"
-                ? "bg-blue-600 text-white shadow"
-                : "text-white group-hover:bg-black/40"
-              }`}
-          >
-            About Me
-          </p>
-        </div>
-      </div>
-
-      {/* Bottom Dock */}
-      <div className="hidden sm:block absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 z-20">
-        <div className="flex items-center space-x-1 sm:space-x-3 px-2 py-1.5 sm:px-3 sm:py-2 bg-stone-900/75 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl transition-all">
-          <button
-            onClick={() => openFolderFromDock("Projects")}
-            title="Projects Folder"
-            className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0"
-          >
-            <img src={folder} alt="Projects" className="w-7 h-7 sm:w-10 sm:h-10 object-contain filter drop-shadow-md" />
-            <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
+                }`}
+            >
               Projects
-            </span>
-            <div className="w-1 h-1 bg-stone-300 rounded-full mx-auto mt-0.5 sm:mt-1 opacity-80" />
-          </button>
+            </p>
+          </div>
 
-          <button
-            onClick={() => openFolderFromDock("Professional Experience")}
-            title="Work Experience"
-            className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0"
+          {/* Professional Experience Folder */}
+          <div
+            tabIndex={0}
+            role="button"
+            aria-label="Open Professional Experience Folder"
+            className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl"
+            onClick={(e) => handleItemClick(e, "Professional Experience", "folder")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openItem(e, "Professional Experience", "folder");
+              }
+            }}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              openItem(e, "Professional Experience", "folder");
+            }}
           >
-            <img src={folder} alt="Experience" className="w-7 h-7 sm:w-10 sm:h-10 object-contain filter drop-shadow-md" />
-            <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
-              Work Experience
-            </span>
-            <div className="w-1 h-1 bg-stone-300 rounded-full mx-auto mt-0.5 sm:mt-1 opacity-80" />
-          </button>
+            <div
+              className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "Professional Experience"
+                ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
+                : "group-hover:bg-white/10"
+                }`}
+            >
+              <img src={folder} alt="Professional Experience" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
+            </div>
+            <p
+              className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "Professional Experience"
+                ? "bg-blue-600 text-white shadow"
+                : "text-white group-hover:bg-black/40"
+                }`}
+            >
+              Experience
+            </p>
+          </div>
 
-          <button
-            onClick={() => openFolderFromDock("Leadership Roles")}
-            title="Leadership Roles"
-            className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0"
+          {/* Leadership Roles Folder */}
+          <div
+            tabIndex={0}
+            role="button"
+            aria-label="Open Leadership Roles Folder"
+            className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl"
+            onClick={(e) => handleItemClick(e, "Leadership Roles", "folder")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openItem(e, "Leadership Roles", "folder");
+              }
+            }}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              openItem(e, "Leadership Roles", "folder");
+            }}
           >
-            <img src={folder} alt="Leadership" className="w-7 h-7 sm:w-10 sm:h-10 object-contain filter drop-shadow-md" />
-            <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
-              Leadership Roles
-            </span>
-            <div className="w-1 h-1 bg-stone-300 rounded-full mx-auto mt-0.5 sm:mt-1 opacity-80" />
-          </button>
+            <div
+              className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "Leadership Roles"
+                ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
+                : "group-hover:bg-white/10"
+                }`}
+            >
+              <img src={folder} alt="Leadership Roles" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
+            </div>
+            <p
+              className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "Leadership Roles"
+                ? "bg-blue-600 text-white shadow"
+                : "text-white group-hover:bg-black/40"
+                }`}
+            >
+              Leadership
+            </p>
+          </div>
 
-          <button
-            onClick={() => openFolderFromDock("About Me")}
-            title="About Me Folder"
-            className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0"
+          {/* Research Paper File */}
+          <div
+            tabIndex={0}
+            role="button"
+            aria-label="Open Research Paper Document"
+            className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl"
+            onClick={(e) => handleItemClick(e, "researchPaper", "file")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openItem(e, "Research Paper", "file");
+              }
+            }}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              openItem(e, "Research Paper", "file");
+            }}
           >
-            <img src={folder} alt="About Me" className="w-7 h-7 sm:w-10 sm:h-10 object-contain filter drop-shadow-md" />
-            <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
+            <div
+              className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "researchPaper"
+                ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
+                : "group-hover:bg-white/10"
+                }`}
+            >
+              <img src={pdficon} alt="Research Paper" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
+            </div>
+            <p
+              className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md leading-tight max-w-[76px] sm:max-w-[100px] transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "researchPaper"
+                ? "bg-blue-600 text-white shadow"
+                : "text-white group-hover:bg-black/40"
+                }`}
+            >
+              Research<br className="sm:hidden" /> Paper
+            </p>
+          </div>
+
+          {/* About Me Folder */}
+          <div
+            tabIndex={0}
+            role="button"
+            aria-label="Open About Me Folder"
+            className="selectable-item flex flex-col items-center w-20 sm:w-24 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl"
+            onClick={(e) => handleItemClick(e, "About Me", "folder")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openItem(e, "About Me", "folder");
+              }
+            }}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              openItem(e, "About Me", "folder");
+            }}
+          >
+            <div
+              className={`p-0.5 rounded-xl transition-all duration-200 transform group-hover:scale-105 ${selectedItem === "About Me"
+                ? "bg-blue-600/30 ring-1 ring-blue-400/60 shadow-md"
+                : "group-hover:bg-white/10"
+                }`}
+            >
+              <img src={folder} alt="About Me" className="w-[56px] h-[56px] sm:w-22 sm:h-22 object-contain filter drop-shadow-xl" />
+            </div>
+            <p
+              className={`text-xs sm:text-sm font-semibold text-center mt-0.5 px-1 py-0.5 rounded-md transition-colors [text-shadow:_0_1px_3px_rgb(0_0_0_/_0.8)] ${selectedItem === "About Me"
+                ? "bg-blue-600 text-white shadow"
+                : "text-white group-hover:bg-black/40"
+                }`}
+            >
               About Me
-            </span>
-            <div className="w-1 h-1 bg-stone-300 rounded-full mx-auto mt-0.5 sm:mt-1 opacity-80" />
-          </button>
-
-          <div className="w-px h-6 sm:h-8 bg-white/20 mx-0.5 sm:mx-1 flex-shrink-0" />
-
-          <a
-            href="https://github.com/samankgupta"
-            target="_blank"
-            rel="noreferrer"
-            title="GitHub"
-            className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0"
-          >
-            <img src={github} alt="GitHub" className="w-6 h-6 sm:w-9 sm:h-9 object-contain filter brightness-0 invert drop-shadow-md" />
-            <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
-              GitHub Profile
-            </span>
-          </a>
-
-          <a
-            href="https://www.linkedin.com/in/samank-gupta/"
-            target="_blank"
-            rel="noreferrer"
-            title="LinkedIn"
-            className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0"
-          >
-            <img src={linkedin} alt="LinkedIn" className="w-6 h-6 sm:w-9 sm:h-9 object-contain filter brightness-0 invert drop-shadow-md" />
-            <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
-              LinkedIn Profile
-            </span>
-          </a>
-
-          <a
-            href="mailto:samankgupta@gmail.com"
-            target="_blank"
-            rel="noreferrer"
-            title="Email"
-            className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0"
-          >
-            <img src={mail} alt="Email" className="w-6 h-6 sm:w-9 sm:h-9 object-contain filter brightness-0 invert drop-shadow-md" />
-            <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
-              Email Samank
-            </span>
-          </a>
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* File Preview Modal */}
-      <ModalFile
-        isOpen={isModalFileOpen}
-        onClose={closeFileModal}
-        modalPosition={modalFilePosition}
-        modalFileName={modalFileName}
-      />
+        {/* Bottom Dock */}
+        <div className="hidden sm:block absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 z-20">
+          <div className="flex items-center space-x-1 sm:space-x-2.5 px-2 py-1.5 sm:px-3 sm:py-2 bg-stone-900/75 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl transition-all">
+            {/* Folder: Projects */}
+            <button
+              onClick={() => openFolderFromDock("Projects")}
+              title="Projects Folder"
+              aria-label="Projects Folder"
+              className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl"
+            >
+              <img src={folder} alt="Projects" className="w-7 h-7 sm:w-10 sm:h-10 object-contain filter drop-shadow-md" />
+              <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
+                Projects
+              </span>
+              <div className="w-1 h-1 bg-stone-300 rounded-full mx-auto mt-0.5 sm:mt-1 opacity-80" />
+            </button>
 
-      {/* Folder Finder Modal */}
-      <ModalFolder
-        isOpen={isModalFolderOpen}
-        onClose={closeFolderModal}
-        modalPosition={modalFolderPosition}
-        modalFolderName={modalFolderName}
-      />
+            {/* Folder: Experience */}
+            <button
+              onClick={() => openFolderFromDock("Professional Experience")}
+              title="Work Experience"
+              aria-label="Work Experience Folder"
+              className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl"
+            >
+              <img src={folder} alt="Experience" className="w-7 h-7 sm:w-10 sm:h-10 object-contain filter drop-shadow-md" />
+              <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
+                Work Experience
+              </span>
+              <div className="w-1 h-1 bg-stone-300 rounded-full mx-auto mt-0.5 sm:mt-1 opacity-80" />
+            </button>
+
+            {/* Folder: Leadership */}
+            <button
+              onClick={() => openFolderFromDock("Leadership Roles")}
+              title="Leadership Roles"
+              aria-label="Leadership Roles Folder"
+              className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl"
+            >
+              <img src={folder} alt="Leadership" className="w-7 h-7 sm:w-10 sm:h-10 object-contain filter drop-shadow-md" />
+              <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
+                Leadership Roles
+              </span>
+              <div className="w-1 h-1 bg-stone-300 rounded-full mx-auto mt-0.5 sm:mt-1 opacity-80" />
+            </button>
+
+            {/* Folder: About Me */}
+            <button
+              onClick={() => openFolderFromDock("About Me")}
+              title="About Me Folder"
+              aria-label="About Me Folder"
+              className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl"
+            >
+              <img src={folder} alt="About Me" className="w-7 h-7 sm:w-10 sm:h-10 object-contain filter drop-shadow-md" />
+              <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
+                About Me
+              </span>
+              <div className="w-1 h-1 bg-stone-300 rounded-full mx-auto mt-0.5 sm:mt-1 opacity-80" />
+            </button>
+
+            <div className="w-px h-6 sm:h-8 bg-white/20 mx-0.5 sm:mx-1 flex-shrink-0" />
+
+            {/* Terminal CLI App */}
+            <button
+              onClick={() => setIsTerminalOpen(true)}
+              title="Terminal (CLI App)"
+              aria-label="Open Terminal CLI App"
+              className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-xl"
+            >
+              <img src={terminalIcon} alt="Terminal" className="w-7 h-7 sm:w-10 sm:h-10 object-contain filter drop-shadow-md" />
+              <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
+                Terminal (CLI)
+              </span>
+              <div className="w-1 h-1 bg-emerald-400 rounded-full mx-auto mt-0.5 sm:mt-1 opacity-80" />
+            </button>
+
+            {/* Retro Snake Arcade Game */}
+            <button
+              onClick={() => setIsSnakeGameOpen(true)}
+              title="Retro Arcade Snake Game"
+              aria-label="Open Retro Arcade Snake Game"
+              className="group relative p-0.5 sm:p-1 hover:-translate-y-1.5 transition-all duration-200 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-xl"
+            >
+              <MacSnakeGameIcon className="w-7 h-7 sm:w-10 sm:h-10" />
+              <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
+                Snake Game
+              </span>
+              <div className="w-1 h-1 bg-emerald-400 rounded-full mx-auto mt-0.5 sm:mt-1 opacity-80" />
+            </button>
+
+            {/* Trash Bin */}
+            <button
+              onClick={() => setIsTrashOpen(true)}
+              title="Trash Bin"
+              aria-label="Open Trash Bin"
+              className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 rounded-xl"
+            >
+              <img src={trashIcon} alt="Trash Bin" className="w-7 h-7 sm:w-10 sm:h-10 object-contain filter drop-shadow-md" />
+              <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
+                Trash Bin
+              </span>
+              <div className="w-1 h-1 bg-stone-400 rounded-full mx-auto mt-0.5 sm:mt-1 opacity-80" />
+            </button>
+
+            <div className="w-px h-6 sm:h-8 bg-white/20 mx-0.5 sm:mx-1 flex-shrink-0" />
+
+            <a
+              href="https://github.com/samankgupta"
+              target="_blank"
+              rel="noreferrer"
+              title="GitHub"
+              aria-label="GitHub Profile"
+              className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl"
+            >
+              <img src={github} alt="GitHub" className="w-6 h-6 sm:w-9 sm:h-9 object-contain filter brightness-0 invert drop-shadow-md" />
+              <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
+                GitHub Profile
+              </span>
+            </a>
+
+            <a
+              href="https://www.linkedin.com/in/samank-gupta/"
+              target="_blank"
+              rel="noreferrer"
+              title="LinkedIn"
+              aria-label="LinkedIn Profile"
+              className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl"
+            >
+              <img src={linkedin} alt="LinkedIn" className="w-6 h-6 sm:w-9 sm:h-9 object-contain filter brightness-0 invert drop-shadow-md" />
+              <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
+                LinkedIn Profile
+              </span>
+            </a>
+
+            <a
+              href="mailto:samankgupta@gmail.com"
+              target="_blank"
+              rel="noreferrer"
+              title="Email"
+              aria-label="Email Samank"
+              className="group relative p-1 sm:p-2 hover:-translate-y-1.5 hover:scale-110 transition-all duration-200 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl"
+            >
+              <img src={mail} alt="Email" className="w-6 h-6 sm:w-9 sm:h-9 object-contain filter brightness-0 invert drop-shadow-md" />
+              <span className="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 bg-stone-900/95 text-stone-200 text-[10px] px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-stone-700 shadow-xl font-medium">
+                Email Samank
+              </span>
+            </a>
+          </div>
+        </div>
+
+        {/* File Preview Modal */}
+        <ModalFile
+          isOpen={isModalFileOpen}
+          onClose={closeFileModal}
+          modalPosition={modalFilePosition}
+          modalFileName={modalFileName}
+        />
+
+        {/* Folder Finder Modal */}
+        <ModalFolder
+          isOpen={isModalFolderOpen}
+          onClose={closeFolderModal}
+          modalPosition={modalFolderPosition}
+          modalFolderName={modalFolderName}
+        />
+
+        {/* Interactive CLI Terminal Window */}
+        <ModalTerminal
+          isOpen={isTerminalOpen}
+          onClose={() => setIsTerminalOpen(false)}
+        />
+
+        {/* Retro Arcade Snake Game Window */}
+        <ModalSnakeGame
+          isOpen={isSnakeGameOpen}
+          onClose={() => setIsSnakeGameOpen(false)}
+        />
+
+        {/* Trash Bin Window */}
+        <ModalTrash
+          isOpen={isTrashOpen}
+          onClose={() => setIsTrashOpen(false)}
+          onEmptyTrash={() => showToast("✨ Trash emptied! All zero-day bugs eliminated.")}
+        />
       </main>
     </div>
   );
